@@ -11,11 +11,12 @@ from numpy import var
 
 from zmq import BACKLOG
 from king import King
-from building import Hut, TownHall, Cannon, Wall
+from building import Hut, TownHall, Cannon, Wall, WizardTower
 from random import randint
 import variables as variables
 from spawning import SpawningPoint
 from barbarian import Barbarian
+from queen import Queen
 printing_purpose = {0: Back.GREEN+' '+Style.RESET_ALL,
                     1: Back.RED + 'K' + Style.RESET_ALL,
                     2: Back.BLACK + 'W' + Style.RESET_ALL,
@@ -23,7 +24,11 @@ printing_purpose = {0: Back.GREEN+' '+Style.RESET_ALL,
                     4: {0: Back.BLUE + Fore.LIGHTMAGENTA_EX + 'T' + Style.RESET_ALL, 1: Back.YELLOW + Fore.LIGHTMAGENTA_EX + 'T' + Style.RESET_ALL, 2: Back.MAGENTA + Fore.LIGHTGREEN_EX + 'T' + Style.RESET_ALL},
                     5: {0: Back.BLUE + Fore.LIGHTMAGENTA_EX + 'H' + Style.RESET_ALL, 1: Back.YELLOW + Fore.LIGHTMAGENTA_EX + 'H' + Style.RESET_ALL, 2: Back.MAGENTA + Fore.LIGHTGREEN_EX + 'H' + Style.RESET_ALL},
                     6: '\x1b[5;30;43m' + 'S' + '\033[0m',
-                    7: {0: Back.WHITE + Fore.BLACK + 'B' + Style.RESET_ALL, 1: Back.LIGHTYELLOW_EX + Fore.BLACK + 'B' + Style.RESET_ALL}
+                    7: {0: Back.WHITE + Fore.BLACK + 'B' + Style.RESET_ALL, 1: Back.LIGHTYELLOW_EX + Fore.BLACK + 'B' + Style.RESET_ALL},
+                    8: {0: Back.LIGHTRED_EX + Fore.LIGHTMAGENTA_EX + 'W' + Style.RESET_ALL, 1: Back.LIGHTYELLOW_EX + Fore.LIGHTMAGENTA_EX + 'W' + Style.BRIGHT + Style.RESET_ALL},
+                    9: {0: Back.WHITE + Fore.BLACK + 'A' + Style.RESET_ALL, 1: Back.LIGHTYELLOW_EX + Fore.BLACK + 'A' + Style.RESET_ALL},
+                    10: {0: Back.WHITE + Fore.BLACK + 'Z' + Style.RESET_ALL, 1: Back.LIGHTYELLOW_EX + Fore.BLACK + 'Z' + Style.RESET_ALL},
+                    11: Back.RED + 'Q' + Style.RESET_ALL,
 }
 '''
 
@@ -35,16 +40,27 @@ printing_purpose = {0: Back.GREEN+' '+Style.RESET_ALL,
 5  -- Hut
 6  -- Spawning Point
 7  -- Barbarian
+8  -- Wizard
+9  -- Archer
+10 -- Balloon
+11 -- Queen
 '''
 
 
 class Board():
-    def __init__(self):
+    def __init__(self,char_select,current_level):
         self.cols = 75
         self.rows = 30
         self.game_over = False
         self.bg_pixel = Back.GREEN+' '+Style.RESET_ALL
-        self.king = King()
+        self.maxbar = 6
+        self.maxarch = 2
+        self.maxball = 2
+        if(char_select=='1'):
+            self.king = King()
+        else:
+            self.king = Queen()
+            printing_purpose[1] = Back.RED + 'Q' + Style.RESET_ALL
         self.wall = []
         self.game_over = False
         i = variables.WALLX[0]
@@ -65,16 +81,33 @@ class Board():
             TempHut = Hut(i[0], i[1])
             self.huts.append(TempHut)
         self.townhall = TownHall(variables.TOWNHALL[0], variables.TOWNHALL[1])
-        self.cannon = [Cannon(variables.CANNON[0][0], variables.CANNON[0][1], randint(0, 40)), Cannon(
-            variables.CANNON[1][0], variables.CANNON[1][1], randint(0, 40))]
         self.spawning = []
         for i in variables.SPAWNINGPOINT:
             TempSpawning = SpawningPoint(i[0], i[1])
             self.spawning.append(TempSpawning)
-        self.board = [[0 for j in range(self.cols)] for i in range(self.rows)]
+        self.wizard = []
         self.barbarian = []
+        self.balloon = []
+        self.archer = []
         self.enemy = []
+        self.cannon = []
         self.enemy.append(self.king)
+        self.board = [[0 for j in range(self.cols)] for i in range(self.rows)]
+        if(current_level == 0):                
+            for i in variables.Cannons:
+                self.cannon.append(Cannon(i[0],i[1],randint(0,40)))
+            for i in variables.WizardTowers:
+                self.wizard.append(WizardTower(i[0], i[1],randint(0,20)))
+        elif(current_level == 1):
+            for i in variables.Cannon1:
+                self.cannon.append(Cannon(i[0],i[1],randint(0,40)))
+            for i in variables.WizardTowers1:
+                self.wizard.append(WizardTower(i[0], i[1],randint(0,20)))
+        else:
+            for i in variables.Cannon2:
+                self.cannon.append(Cannon(i[0],i[1],randint(0,40)))
+            for i in variables.WizardTowers2:
+                self.wizard.append(WizardTower(i[0], i[1],randint(0,20)))
 
     def render(self, file_name):
         self.board = [[0 for j in range(self.cols)] for i in range(self.rows)]
@@ -86,6 +119,9 @@ class Board():
         self.RenderTownHall()
         self.RenderSpawning()
         self.RenderBarbarian()
+        self.RenderWizard()
+        self.RenderBalloon()
+        self.RenderArcher()
         if(self.king.health > 0):
             if(self.king.health > 0):
                 self.board[self.king.xpos][self.king.ypos] = 1
@@ -93,14 +129,15 @@ class Board():
         count_building = 0
         for i in range(variables.ROWS):
             for j in range(variables.COLS):
-                if(self.board[i][j] == 1 or self.board[i][j] == 7):
+                if(self.board[i][j] == 1 or self.board[i][j] == 7 or self.board[i][j] == 9 or self.board[i][j]==10):
                     count_troops += 1
-                if(self.board[i][j] == 4 or self.board[i][j] == 5 or self.board[i][j] == 3):
+                if(self.board[i][j] == 4 or self.board[i][j] == 5 or self.board[i][j] == 3 or self.board[i][j] == 8):
                     count_building += 1
-                if(self.board[i][j] == 4 or self.board[i][j] == 5 or self.board[i][j] == 3 or self.board[i][j] == 7):
+                if(self.board[i][j] == 4 or self.board[i][j] == 5 or self.board[i][j] == 3 or self.board[i][j] == 7 or self.board[i][j] == 8 or self.board[i][j] == 9 or self.board[i][j] == 10 or self.board[i][j] == 11):
                     continue
                 else:
                     self.printBoard[i][j] = printing_purpose[self.board[i][j]]
+        count_troops += self.maxarch + self.maxball + self.maxbar
         f = open(file_name, "a")
         for i in range(variables.ROWS):
             for j in range(variables.COLS):
@@ -128,17 +165,44 @@ class Board():
                 f.write('\n')
                 f.close()
                 print("Defeat")
+                return 2
             else:
                 f = open(file_name, "a")
                 f.write("Victory")
                 f.write('\n')
                 f.close()
-                print("Victory")
-            return True
+                return 1
         else:
-            print("\033[%d;%dH" % (0, 0))
-            return False
-        
+            print("\033[%d;%dH" % (2, 2))
+            return 0
+
+    def RenderArcher(self):
+        for i in self.archer:
+            if(i.health>0):
+                self.board[i.xpos][i.ypos] = 9
+                if(i.health<=1 and i.health>0.5):
+                    self.printBoard[i.xpos][i.ypos] = printing_purpose[9][0]
+                else:
+                    self.printBoard[i.xpos][i.ypos] = printing_purpose[9][1]
+
+    def RenderBalloon(self):
+        for i in self.balloon:
+            if(i.health > 0):
+                self.board[i.xpos][i.ypos] = 10
+                if(i.health<=1 and i.health>0.5):
+                    self.printBoard[i.xpos][i.ypos] = printing_purpose[10][0]
+                else:
+                    self.printBoard[i.xpos][i.ypos] = printing_purpose[10][1]
+
+
+    def RenderWizard(self):
+        for i in self.wizard:
+            if(i.health > 0):
+                self.board[i.xpos][i.ypos] = 8
+                if(i.shoot):
+                    self.printBoard[i.xpos][i.ypos] = printing_purpose[8][1]
+                else:
+                    self.printBoard[i.xpos][i.ypos] = printing_purpose[8][0]
 
     def RenderBarbarian(self):
         for i in self.barbarian:

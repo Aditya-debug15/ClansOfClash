@@ -16,8 +16,7 @@ class King():
         self.step = 1
         self.damage = 1
 
-    def move(self, board):
-        check = input.input_to()
+    def move(self, board,check):
         if(check == 'a'):
             possible = True
             for i in range(1, self.step+1):
@@ -68,20 +67,6 @@ class King():
                 self.xpos = self.xpos + self.step
         elif(check == ' '):
             board.king.attack(board)
-        elif(check == 'z'):
-            board.spawning[0].release(board)
-        elif(check == 'x'):
-            board.spawning[1].release(board)
-        elif(check == 'c'):
-            board.spawning[2].release(board)
-        elif(check == 'v'):
-            for i in board.enemy:
-                i.ragespell()
-        elif(check == 'b'):
-            board.king.healspell()
-            for i in board.barbarian:
-                i.healspell()
-        return check
 
     def ragespell(self):
         self.damage *= 2
@@ -95,10 +80,9 @@ class King():
 
     def attack(self, board):
         if(self.health>0):
-            count = 0
             for j in range(-3,4):
                 for i in range(-3,4):
-                    if(self.xpos+j >=0 and self.xpos+j <=(board.rows-1) and self.ypos +i >= 0 and self.ypos+i<=(board.cols-1) and (board.board[self.xpos+j][self.ypos+i] == 2 or board.board[self.xpos+j][self.ypos+i] == 5 or board.board[self.xpos+j][self.ypos+i] == 4 or board.board[self.xpos+j][self.ypos+i] == 3)):
+                    if(self.xpos+j >=0 and self.xpos+j <=(board.rows-1) and self.ypos +i >= 0 and self.ypos+i<=(board.cols-1) and (board.board[self.xpos+j][self.ypos+i] == 2 or board.board[self.xpos+j][self.ypos+i] == 5 or board.board[self.xpos+j][self.ypos+i] == 4 or board.board[self.xpos+j][self.ypos+i] == 3 or board.board[self.xpos +j][self.ypos+i] == 8 )):
                         if(board.board[self.xpos+j][self.ypos+i] == 2):
                             temp = [x for x in board.wall if x.xpos ==
                                     self.xpos+j and x.ypos == self.ypos+i]
@@ -111,9 +95,12 @@ class King():
                                 k.health -= self.damage
                         
                         elif(board.board[self.xpos+j][self.ypos+i] == 4):
-                            if(count==0):
                                 board.townhall.health -= self.damage
-                                count+=1
+                        elif(board.board[self.xpos+j][self.ypos+i] == 8):
+                            temp = [x for x in board.wizard if x.xpos ==
+                                    self.xpos+j and x.ypos == self.ypos+i]
+                            for k in temp:
+                                k.health -= self.damage
                         else:
                             temp = [x for x in board.cannon if x.xpos ==
                                     self.xpos+j and x.ypos == self.ypos+i]

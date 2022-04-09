@@ -35,7 +35,7 @@ class Barbarian():
             building = ""
             for i in range(board.rows):
                 for j in range(board.cols):
-                    if(board.board[i][j] == 4 or board.board[i][j] == 5 or board.board[i][j] == 3):
+                    if(board.board[i][j] == 4 or board.board[i][j] == 5 or board.board[i][j] == 3 or board.board[i][j] == 8):
                         dis = abs(self.xpos-i) + abs(self.ypos-j)
                         if(min_dis > dis):
                             min_dis = dis
@@ -45,6 +45,8 @@ class Barbarian():
                                 building = 4
                             elif(board.board[i][j] == 3):
                                 building = 3
+                            elif(board.board[i][j] == 8):
+                                building = 8
                             else:
                                 building = 5
             if(xdestination != self.xpos):
@@ -59,6 +61,11 @@ class Barbarian():
                                 board.townhall.health -= self.damage
                             elif(building == 3):
                                 temp = [x for x in board.cannon if x.xpos ==
+                                    self.xpos-1 and x.ypos == self.ypos]
+                                for i in temp:
+                                    i.health -= self.damage
+                            elif(building == 8):
+                                temp = [ x for x in board.wizard if x.xpos ==
                                     self.xpos-1 and x.ypos == self.ypos]
                                 for i in temp:
                                     i.health -= self.damage
@@ -96,6 +103,11 @@ class Barbarian():
                                 board.townhall.health -= self.damage
                             elif(building == 3):
                                 temp = [x for x in board.cannon if x.xpos ==
+                                    self.xpos+1 and x.ypos == self.ypos]
+                                for i in temp:
+                                    i.health -= self.damage
+                            elif(building == 8):
+                                temp = [ x for x in board.wizard if x.xpos ==
                                     self.xpos+1 and x.ypos == self.ypos]
                                 for i in temp:
                                     i.health -= self.damage
@@ -140,6 +152,11 @@ class Barbarian():
                                     self.xpos and x.ypos == self.ypos-1]
                                 for i in temp:
                                     i.health -= self.damage
+                            elif(building == 8):
+                                temp = [ x for x in board.wizard if x.xpos ==
+                                    self.xpos and x.ypos == self.ypos-1]
+                                for i in temp:
+                                    i.health -= self.damage
                             else:
                                 temp = [x for x in board.huts if x.xpos ==
                                     self.xpos and x.ypos == self.ypos-1]
@@ -173,6 +190,11 @@ class Barbarian():
                                 board.townhall.health -= self.damage
                             elif(building == 3):
                                 temp = [x for x in board.cannon if x.xpos ==
+                                    self.xpos and x.ypos == self.ypos+1]
+                                for i in temp:
+                                    i.health -= self.damage
+                            elif(building == 8):
+                                temp = [ x for x in board.wizard if x.xpos ==
                                     self.xpos and x.ypos == self.ypos+1]
                                 for i in temp:
                                     i.health -= self.damage
