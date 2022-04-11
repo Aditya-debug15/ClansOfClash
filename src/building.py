@@ -108,12 +108,7 @@ class Cannon():
             elif(enemy == 9):
                 temp = [x for x in board.archer if x.xpos == i+xcordinate and x.ypos == j+ycordinate]
                 for z in temp:
-                    z.health -= self.damage
-            elif(enemy == 10):
-                temp = [x for x in board.balloon if x.xpos == i+xcordinate and x.ypos == j+ycordinate]
-                for z in temp:
-                    z.health -= self.damage                    
-
+                    z.health -= self.damage                   
                 # shoot kara denge
 
 
