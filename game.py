@@ -13,7 +13,6 @@ from datetime import datetime
 import src.input as inputi
 
 def delayed_attack(board):
-    time.sleep(1)
     board.king.attack2(board)
 
 
@@ -56,7 +55,7 @@ if (current_level == 0):
         elif(check == 'p'):
             board0.spawning[2].releasearcher(board0)
         elif(check == 'e' and character_select=='2'):
-            t = threading.Thread(delayed_attack(board0))
+            t = threading.Timer(1,delayed_attack,[board0])
             t.start()
         elif(check == 'v'):
             for i in board0.enemy:
@@ -109,7 +108,7 @@ if (current_level == 1):
         elif(check == 'p'):
             board1.spawning[2].releasearcher(board1)
         elif(check == 'e' and character_select=='2'):
-            t = threading.Thread(delayed_attack(board1))
+            t = threading.Timer(1,delayed_attack,[board1])
             t.start()
         elif(check == 'v'):
             for i in board1.enemy:
@@ -162,7 +161,7 @@ if (current_level == 2):
         elif(check == 'p'):
             board2.spawning[2].releasearcher(board2)
         elif(check == 'e' and character_select=='2'):
-            t = threading.Thread(delayed_attack(board2))
+            t = threading.Timer(1,delayed_attack,[board2])
             t.start()
         elif(check == 'v'):
             for i in board2.enemy:
